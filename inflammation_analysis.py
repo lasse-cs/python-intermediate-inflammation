@@ -10,6 +10,7 @@ import os
 from inflammation import models, views
 from inflammation.compute_data import (
     CSVDataSource,
+    JSONDataSource,
     analyse_data,
 )
 
@@ -27,7 +28,15 @@ def main(args):
         infiles = [args.infiles]
 
     if args.full_data_analysis:
-        data_source = CSVDataSource(os.path.dirname(infiles[0]))
+        _, extension = os.path.splitext(infiles[0])
+        if extension == '.json':
+            data_source = JSONDataSource(os.path.dirname(infiles[0]))
+        elif extension == '.csv':
+            data_source = CSVDataSource(os.path.dirname(infiles[0]))
+        else:
+            raise ValueError(
+                f"File {extension} is not a valid JSON or CSV file."
+            )
         daily_standard_deviation = analyse_data(data_source)
         graph_data = {
             'standard deviation by day': daily_standard_deviation,
