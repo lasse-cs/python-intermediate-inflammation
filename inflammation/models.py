@@ -8,6 +8,17 @@ and each column represents a single day across all patients.
 """
 
 import numpy as np
+import json
+
+
+def load_json(filename):
+    """Load a Numpy array from a JSON
+
+    :param filename: Filename of JSON to load
+    """
+    with open(filename, 'r', encoding='utf-8') as file:
+        data_as_json = json.load(file)
+        return [np.array(entry['observations']) for entry in data_as_json]
 
 
 def load_csv(filename):

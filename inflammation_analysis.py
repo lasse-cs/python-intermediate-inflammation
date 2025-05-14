@@ -8,7 +8,10 @@ import argparse
 import os
 
 from inflammation import models, views
-from inflammation.compute_data import analyse_data
+from inflammation.compute_data import (
+    CSVDataSource,
+    analyse_data,
+)
 
 
 def main(args):
@@ -24,16 +27,24 @@ def main(args):
         infiles = [args.infiles]
 
     if args.full_data_analysis:
-        analyse_data(os.path.dirname(infiles[0]))
+        data_source = CSVDataSource(os.path.dirname(infiles[0]))
+        analyse_data(data_source)
         return
 
     for filename in infiles:
-        inflammation_data = models.load_csv(filename)
+        if filename.endswith(".json"):
+            inflammation_data = models.load_json(filename)
+        elif filename.endswith(".csv"):
+            inflammation_data = models.load_csv(filename)
+        else:
+            raise ValueError(
+                f"File {filename} is not a valid JSON or CSV file."
+            )
 
         view_data = {
-            'average': models.daily_mean(inflammation_data),
-            'max': models.daily_max(inflammation_data),
-            'min': models.daily_min(inflammation_data)
+            "average": models.daily_mean(inflammation_data),
+            "max": models.daily_max(inflammation_data),
+            "min": models.daily_min(inflammation_data),
         }
 
         views.visualize(view_data)
@@ -41,19 +52,18 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='A basic patient inflammation data management system'
+        description="A basic patient inflammation data management system"
     )
 
     parser.add_argument(
-        'infiles',
-        nargs='+',
-        help='Input CSV(s) containing inflammation series for each patient'
+        "infiles",
+        nargs="+",
+        help="Input CSV(s) containing inflammation series for each patient",
     )
 
     parser.add_argument(
-        '--full-data-analysis',
-        action='store_true',
-        dest='full_data_analysis')
+        "--full-data-analysis", action="store_true", dest="full_data_analysis"
+    )
 
     args = parser.parse_args()
 
